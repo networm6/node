@@ -41,8 +41,15 @@ function login() {
         method: "POST",
         json: true,
         strictSSL: false,
+        headers: {
+            "Cookie": "__guid=236905885.1872749282285932800.1666686966710.4656; psp=admin|||2|||0; monitor_count=7",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
         body: "username=admin&password=" + oldPwd(pwd, simonNonce, simonKey) + "&logtype=2&nonce=" + simonNonce
     }, function (error, response, body) {
+        console.log("login body:" + body);
+        console.log("login response:" + response);
+        console.log("login error:" + error);
         getAddress();
     });
 }
