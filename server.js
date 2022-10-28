@@ -42,7 +42,7 @@ function login() {
         json: true,
         strictSSL: false,
         body: "username=admin&password=" + oldPwd(pwd, simonNonce, simonKey) + "&logtype=2&nonce=" + simonNonce
-    }, function () {
+    }, function (error, response, body) {
         getAddress();
     });
 }
@@ -53,6 +53,7 @@ function getAddress() {
         method: "GET",
         strictSSL: false,
     }, function (error, response, body) {
+        console.log("body:" + body);
         const currentAddress = JSON.parse(body).ip.address;
         console.log("currentAddress:" + currentAddress);
         ADDR = currentAddress;
