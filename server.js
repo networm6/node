@@ -59,6 +59,9 @@ function getAddress() {
         url: "https://miwifi.com/cgi-bin/luci/;stok=95294fb312fe0a33da12d966e69d411c/api/xqnetwork/pppoe_status",
         method: "GET",
         strictSSL: false,
+        headers: {
+            "Cookie": "__guid=236905885.1872749282285932800.1666686966710.4656; psp=admin|||2|||0; monitor_count=10",
+        },
     }, function (error, response, body) {
         console.log("body:" + body);
         const currentAddress = JSON.parse(body).ip.address;
