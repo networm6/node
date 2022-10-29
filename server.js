@@ -3,11 +3,12 @@ const app = require('express')();
 const http = require('http').Server(app);
 const sha1 = require('sha1');
 const schedule = require('node-schedule');
-ADDR = "";
+let ADDR = "";
 
 const scheduleMission = () => {
     schedule.scheduleJob('55 * * * * *', () => {
         login();
+        console.log("ADDR:" + ADDR);
     });
 }
 
@@ -56,7 +57,6 @@ function login() {
             login();
         } else {
             try {
-                console.log("login body:" + body);
                 var token = response.body.token;
                 getAddress(token);
             } catch (e) {
@@ -112,8 +112,7 @@ function sendAddress(address) {
             sendAddress(address);
         } else {
             try {
-                console.log("sendAddress\n");
-                console.log("error" + error + "\nresponse:" + response + "\nbody:" + body);
+                console.log("sendAddress");
             } catch (e) {
                 sendAddress(address);
             }
