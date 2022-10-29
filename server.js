@@ -3,19 +3,16 @@ const app = require('express')();
 const http = require('http').Server(app);
 const sha1 = require('sha1');
 const schedule = require('node-schedule');
+ADDR = "";
 
 const scheduleMission = () => {
-    //每分钟的第30分钟定时执行一次:
-    schedule.scheduleJob('* 1 * * * *', () => {
+    schedule.scheduleJob('55 * * * * *', () => {
         login();
     });
 }
-login();
+
 scheduleMission();
-var ADDR = "";
-app.get('/getIP', function (req, res) {
-    res.send(ADDR);
-});
+login();
 http.listen(3000, function () {
     console.log('listening on *:3000');
 });
@@ -35,49 +32,91 @@ function oldPwd(pwd, nonce, key) {
 function login() {
     const simonKey = 'a2ffa5c9be07488bbb04a3a47d3c5f6a';
     const simonNonce = nonceCreat();
-    const pwd = "ahuisealb1";
+    const pwd = "ahuisealb109";
     request({
-        url: "https://miwifi.com/cgi-bin/luci/api/xqsystem/login",
+        url: "http://miwifi.com/cgi-bin/luci/api/xqsystem/login",
         method: "POST",
         json: true,
         strictSSL: false,
         headers: {
-            "Cookie": "__guid=236905885.1872749282285932800.1666686966710.4656; psp=admin|||2|||0; monitor_count=7",
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Host': 'miwifi.com',
+            'Origin': 'http://miwifi.com',
+            'Referer': 'http://miwifi.com/cgi-bin/luci/web',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Connection': 'keep-alive',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept': '*/*',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6'
         },
         body: "username=admin&password=" + oldPwd(pwd, simonNonce, simonKey) + "&logtype=2&nonce=" + simonNonce
     }, function (error, response, body) {
-        console.log("login body:" + body);
-        console.log("login response:" + response);
-        console.log("login error:" + error);
-        getAddress();
+        if (error) {
+            login();
+        } else {
+            try {
+                console.log("login body:" + body);
+                var token = response.body.token;
+                getAddress(token);
+            } catch (e) {
+                login();
+            }
+
+        }
     });
 }
 
-function getAddress() {
+function getAddress(token) {
     request({
-        url: "https://miwifi.com/cgi-bin/luci/;stok=95294fb312fe0a33da12d966e69d411c/api/xqnetwork/pppoe_status",
+        url: "https://miwifi.com/cgi-bin/luci/;stok=" + token + "/api/xqnetwork/pppoe_status",
         method: "GET",
         strictSSL: false,
         headers: {
-            "Cookie": "__guid=236905885.1872749282285932800.1666686966710.4656; psp=admin|||2|||0; monitor_count=10",
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Host': 'miwifi.com',
+            'Origin': 'http://miwifi.com',
+            'Referer': 'http://miwifi.com/cgi-bin/luci/web',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Connection': 'keep-alive',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept': '*/*',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6'
         },
     }, function (error, response, body) {
-        console.log("body:" + body);
-        const currentAddress = JSON.parse(body).ip.address;
-        console.log("currentAddress:" + currentAddress);
-        ADDR = currentAddress;
-        sendAddress(currentAddress);
+        if (error) {
+            getAddress(token);
+        } else {
+            try {
+                const currentAddress = JSON.parse(body).ip.address;
+                console.log("currentAddress:" + currentAddress);
+                if (ADDR !== currentAddress) {
+                    ADDR = currentAddress;
+                    sendAddress(currentAddress);
+                }
+            } catch (e) {
+                getAddress(token);
+            }
+        }
     });
 }
 
 function sendAddress(address) {
     request({
-        url: "http://1.12.224.42:3000/address?address=" + address,
+        url: "http://124.220.11.247:10800/address.php?url=http://" + address,
         method: "GET",
         strictSSL: false,
     }, function (error, response, body) {
-        console.log("sendAddress\n");
-        console.log("error" + error + "\nresponse:" + response + "\nbody:" + body);
+        if (error) {
+            sendAddress(address);
+        } else {
+            try {
+                console.log("sendAddress\n");
+                console.log("error" + error + "\nresponse:" + response + "\nbody:" + body);
+            } catch (e) {
+                sendAddress(address);
+            }
+        }
     });
 }
