@@ -9,6 +9,7 @@ const scheduleMission = () => {
     schedule.scheduleJob('55 * * * * *', () => {
         login();
         console.log("ADDR:" + ADDR);
+        console.log("\n\n\n\n");
     });
 }
 
